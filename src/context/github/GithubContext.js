@@ -1,4 +1,5 @@
-import { createContext, useState } from "react";
+import { createContext, useReducer } from "react";
+import githubReducer from "./GithubReducer";
 
 const GithubContext = createContext();
 
@@ -8,32 +9,66 @@ const GITHUB_URL = process.env.REACT_APP_GITHUB_URL;
 
 export const GithubProvider = ({ children }) => {
   // THESE TWO VARIABLES ARE PROVIDED
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // const [users, setUsers] = useState([]);
+  // const [loading, setLoading] = useState(false);
 
-  const fetchUsers = async () => {
-    setLoading(true);
+  const initialState = {
+    users: [],
+    loading: false,
+  };
+
+  const [state, dispatch] = useReducer(githubReducer, initialState);
+
+  // dipatch--->arg provider as object, reducer function ------> arg user function ------> useReducer ----> state updater
+
+  // testing purposes
+  // const fetchUsers = async () => {
+  //   setLoading();
+  //   const response = await fetch(
+  //     `${GITHUB_URL}/users`
+  //     //  {headers: { Authorization: `token ${GITHUB_TOKEN}` },}
+  //   );
+  //   const data = await response.json();
+  //   // console.log(data);
+  //   //
+
+  //   dispatch({
+  //     type: "GET_USERS",
+  //     payload: data,
+  //   });
+
+  // get search reasults
+  const searchUsers = async (text) => {
+    setLoading();
+
+    const params = new URLSearchParams({
+      q: text,
+    });
     const response = await fetch(
-      `${GITHUB_URL}/users`
+      `${GITHUB_URL}/search/users?${params}`
       //  {headers: { Authorization: `token ${GITHUB_TOKEN}` },}
     );
-    const data = await response.json();
-    // console.log(data);
-    setUsers(data);
-    setLoading(false);
+
+    const { items } = await response.json();
+
+    dispatch({
+      type: "GET_USERS",
+      payload: items,
+    });
   };
+  //set loading
+  const setLoading = () => dispatch({ type: "SET_LOADING" });
 
   return (
     <GithubContext.Provider
       value={{
-        users,
-        loading,
-        fetchUsers,
+        users: state.users,
+        loading: state.loading,
+        searchUsers,
       }}
     >
       {children}
     </GithubContext.Provider>
   );
 };
-
 export default GithubContext;

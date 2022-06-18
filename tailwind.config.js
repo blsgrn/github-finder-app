@@ -7,8 +7,8 @@ module.exports = {
   plugins: [require("daisyui")],
   daisyui: {
     themes: [
-      "wireframe",
       "winter",
+      "wireframe",
       "light",
       "dark",
       "cupcake",
